@@ -4,52 +4,152 @@
   <meta charset="UTF-8">
   <title>Halı Saha Takım Kurucu</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    input, select, button { margin-right: 5px; margin-bottom: 10px; }
-    .team { margin-top: 20px; }
-    .team h3 { margin-bottom: 5px; }
-    ul { list-style-type: none; padding: 0; }
-    li { padding: 3px 0; }
-    #playerDropdown { margin-bottom: 10px; }
+    /* Genel stil */
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #f0f0f0, #dcdcdc); /* Beyaz ve gri tonlarında yumuşak bir degrade */
+    }
+
+    .container {
+      width: 90%;
+      max-width: 1000px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.8); /* Glassmorphism efekti */
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    h2, h3 {
+      color: #333; /* Başlıklar için koyu renk */
+    }
+
+    /* Sayfa içeriği */
+    .input-container {
+      margin-bottom: 20px;
+    }
+
+    input, select, button {
+      margin-right: 10px;
+      margin-bottom: 10px;
+      padding: 10px;
+      font-size: 14px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+
+    button {
+      cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    /* Oyuncu listesi */
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    li {
+      padding: 5px 0;
+      color: #333; /* Tüm yazılar için tek renk: koyu gri */
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Takım bölümleri */
+    .team {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      background-color: #fff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .card {
+      background-color: white;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
   </style>
 </head>
 <body>
-  <h2>Halı Saha Takım Kurucu</h2>
+  <div class="container">
+    <h2>Halı Saha Takım Kurucu</h2>
 
-  <input type="text" id="playerName" placeholder="Oyuncu adı" />
-  <select id="playerRole">
-    <option value="Kaleci">Kaleci</option>
-    <option value="Defans">Defans</option>
-    <option value="Orta Saha">Orta Saha</option>
-    <option value="Forvet">Forvet</option>
-  </select>
-  <select id="playerSkill">
-    <option value="1">1</option>
-    <option value="2">2</option>
-    <option value="3">3</option>
-    <option value="4">4</option>
-    <option value="5" selected>5</option>
-    <option value="6">6</option>
-    <option value="7">7</option>
-    <option value="8">8</option>
-    <option value="9">9</option>
-    <option value="10">10</option>
-  </select>
-  <button onclick="addPlayer()">Ekle</button>
+    <div class="input-container">
+      <input type="text" id="playerName" placeholder="Oyuncu adı" />
+      <select id="playerRole">
+        <option value="Kaleci">Kaleci</option>
+        <option value="Defans">Defans</option>
+        <option value="Orta Saha">Orta Saha</option>
+        <option value="Forvet">Forvet</option>
+      </select>
+      <select id="playerSkill">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5" selected>5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+      </select>
+      <button onclick="addPlayer()">Ekle</button>
+    </div>
 
-  <h3>Oyuncular (Toplam: <span id="playerCount">0</span>)</h3>
-  <ul id="playerList"></ul>
+    <h3>Oyuncular (Toplam: <span id="playerCount">0</span>)</h3>
+    <ul id="playerList"></ul>
 
-  <h3>Oyuncu Sil</h3>
-  <select id="playerDropdown">
-    <option disabled selected>Silmek için oyuncu seçin</option>
-  </select>
-  <button onclick="removePlayer()">Sil</button>
+    <h3>Oyuncu Düzenleme</h3>
+    <div id="editPlayerSection" style="display:none;">
+      <input type="text" id="editName" placeholder="Yeni Ad" />
+      <select id="editRole">
+        <option value="Kaleci">Kaleci</option>
+        <option value="Defans">Defans</option>
+        <option value="Orta Saha">Orta Saha</option>
+        <option value="Forvet">Forvet</option>
+      </select>
+      <select id="editSkill">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+      </select>
+      <button onclick="updatePlayer()">Güncelle</button>
+    </div>
 
-  <button onclick="shuffleTeams()">Karıştır ve Takımları Kur</button>
+    <button onclick="shuffleTeams()">Karıştır ve Takımları Kur</button>
 
-  <div class="team" id="teamA"></div>
-  <div class="team" id="teamB"></div>
+    <div class="team" id="teamA"></div>
+    <div class="team" id="teamB"></div>
+  </div>
 
   <script>
     // localStorage'dan oyuncu listesi alınır
@@ -74,14 +174,16 @@
     function updatePlayerList() {
       const playerList = document.getElementById('playerList');
       const playerCount = document.getElementById('playerCount');
-      const playerDropdown = document.getElementById('playerDropdown');
 
-      playerList.innerHTML = players.map(p => 
-        `<li>${p.name} (${p.role}, Güç: ${p.power})</li>`
+      playerList.innerHTML = players.map((p, index) => 
+        `<li>
+          ${p.name} (${p.role}, Güç: ${p.power})
+          <div class="buttons">
+            <button onclick="editPlayer(${index})">Düzenle</button>
+            <button onclick="deletePlayer(${index})">Sil</button>
+          </div>
+        </li>`
       ).join('');
-
-      playerDropdown.innerHTML = '<option disabled selected>Silmek için oyuncu seçin</option>' + 
-        players.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
 
       // Oyuncu sayısını güncelle
       playerCount.textContent = players.length;
@@ -148,14 +250,40 @@
     }
 
     // Oyuncu sil
-    function removePlayer() {
-      const selectedPlayer = document.getElementById('playerDropdown').value;
-      if (!selectedPlayer) return alert("Lütfen bir oyuncu seçin.");
-
-      players = players.filter(p => p.name !== selectedPlayer);
+    function deletePlayer(index) {
+      players.splice(index, 1);
       localStorage.setItem('players', JSON.stringify(players)); // localStorage'dan sil
-
       updatePlayerList(); // oyuncu listesine güncelle
+    }
+
+    // Oyuncu düzenle
+    function editPlayer(index) {
+      const player = players[index];
+      document.getElementById('editPlayerSection').style.display = 'block';
+
+      document.getElementById('editName').value = player.name;
+      document.getElementById('editRole').value = player.role;
+      document.getElementById('editSkill').value = player.power;
+
+      window.currentEditIndex = index; // Düzenleme işlemi yapılacak oyuncu index'i
+    }
+
+    // Oyuncu güncelle
+    function updatePlayer() {
+      const newName = document.getElementById('editName').value;
+      const newRole = document.getElementById('editRole').value;
+      const newPower = parseInt(document.getElementById('editSkill').value);
+
+      if (!newName || isNaN(newPower) || newPower < 1 || newPower > 10 || !newRole) {
+        alert("Geçersiz giriş!");
+        return;
+      }
+
+      players[window.currentEditIndex] = { name: newName, role: newRole, power: newPower };
+      localStorage.setItem('players', JSON.stringify(players)); // localStorage'a güncelle
+      updatePlayerList(); // oyuncu listesine güncelle
+
+      document.getElementById('editPlayerSection').style.display = 'none'; // Düzenleme bölümünü gizle
     }
 
     // Sayfa yüklendiğinde oyuncu listelerini güncelle
