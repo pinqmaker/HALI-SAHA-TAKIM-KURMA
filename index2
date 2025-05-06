@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Halı Saha Takım Kurucu</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f0f0f0, #dcdcdc);
+    }
+
+    .container {
+      width: 95%;
+      max-width: 1200px;
+      padding: 20px;
+      margin-top: 20px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    h2, h3 {
+      color: #333;
+    }
+
+    .input-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input, select, button {
+      padding: 10px;
+      font-size: 14px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+
+    button {
+      cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background-color: #388E3C;
+    }
+
+    .player-section {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .player-list-wrapper {
+      width: 48%;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+      max-height: 300px;
+      overflow-y: auto;
+      margin: 0 auto;
+    }
+
+    li {
+      padding: 5px 0;
+      color: #333;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 5px;
+    }
+
+    .teams-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: nowrap;
+    margin-top: 20px;
+  }
+
+  .team {
+    padding: 15px;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 48%; /* Takımların yan yana durması için genişlik */
+  }
+
+    .badge {
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-size: 12px;
+      color: white;
+      margin-left: 8px;
+    }
+
+    .badge-Kaleci { background-color: #2196F3; }
+    .badge-Defans { background-color: #4CAF50; }
+    .badge-OrtaSaha { background-color: #FFEB3B; color: #000; }
+    .badge-Forvet { background-color: #f44336; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Halı Saha Takım Kurucu</h2>
+
+    <div class="input-container">
+      <input type="text" id="playerName" placeholder="Oyuncu adı" maxlength="20" />
+      <select id="playerRole">
+        <option value="Kaleci">Kaleci</option>
+        <option value="Defans">Defans</option>
+        <option value="Orta Saha">Orta Saha</option>
+        <option value="Forvet">Forvet</option>
+      </select>
+      <select id="playerSkill">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5" selected>5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+      </select>
+      <button onclick="addPlayer()">Ekle</button>
+    </div>
+
+    <div id="editSection" class="input-container" style="display:none;"></div>
+
+    <div class="player-section">
+      <div class="player-list-wrapper">
+        <h3>Oyuncular (Toplam: <span id="playerCount">0</span>)</h3>
+        <ul id="playerList"></ul>
+      </div>
+    </div>
+
+    <button onclick="shuffleTeams()">Karıştır ve Takımları Kur</button>
+
+    <div class="teams-container">
+      <div class="team" id="teamA"></div>
+      <div class="team" id="teamB"></div>
+    </div>
+  </div>
+
+  <script>
+    let players = JSON.parse(localStorage.getItem('players')) || [];
+    let editingIndex = null;
+
+    function addPlayer() {
+      const name = document.getElementById('playerName').value.trim();
+      const role = document.getElementById('playerRole').value;
+      const power = parseInt(document.getElementById('playerSkill').value);
+
+      if (!name) return alert("Lütfen oyuncu adı girin.");
+
+      players.push({ name, role, power });
+      localStorage.setItem('players', JSON.stringify(players));
+      document.getElementById('playerName').value = '';
+      updatePlayerList();
+    }
+
+    function updatePlayerList() {
+      const playerList = document.getElementById('playerList');
+      const playerCount = document.getElementById('playerCount');
+
+      playerList.innerHTML = players.map((p, index) => {
+        const roleClass = 'badge-' + p.role.replace(/\s+/g, '');
+        return `<li>
+          ${p.name.slice(0, 20)} <span class="badge ${roleClass}">${p.role}</span> (Güç: ${p.power})
+          <div class="buttons">
+            <button onclick="editPlayer(${index})">Düzenle</button>
+            <button onclick="deletePlayer(${index})">Sil</button>
+          </div>
+        </li>`;
+      }).join('');
+
+      playerCount.textContent = players.length;
+    }
+
+   function shuffleTeams() {
+  if (players.length !== 14) {
+    alert("Tam olarak 14 oyuncu eklenmeli! Şu an: " + players.length);
+    return;
+  }
+
+  // Kalecileri önce ayırıyoruz
+  const keepers = players.filter(p => p.role === 'Kaleci');
+  const nonKeepers = players.filter(p => p.role !== 'Kaleci');
+
+  // Takımları oluşturuyoruz
+  const teamA = [];
+  const teamB = [];
+
+  // Öncelikle her takıma bir kaleci ekliyoruz
+  if (keepers.length >= 2) {
+    teamA.push(keepers[0]);
+    teamB.push(keepers[1]);
+  }
+
+  // Kalan oyuncuları karıştırıp takımlara dağıtıyoruz
+  const shuffledNonKeepers = shuffle(nonKeepers);
+  const remainingSpotsA = 7 - teamA.length;
+  const remainingSpotsB = 7 - teamB.length;
+
+  teamA.push(...shuffledNonKeepers.slice(0, remainingSpotsA));
+  teamB.push(...shuffledNonKeepers.slice(remainingSpotsA, remainingSpotsA + remainingSpotsB));
+
+  // Güç toplamlarını hesaplıyoruz
+  const totalPowerA = teamA.reduce((sum, p) => sum + p.power, 0);
+  const totalPowerB = teamB.reduce((sum, p) => sum + p.power, 0);
+
+  // Takım A'yı güncelliyoruz
+  document.getElementById('teamA').innerHTML = `
+    <h3>A Takımı (Toplam Güç: ${totalPowerA})</h3>
+    <ul>${teamA.map(p => `<li>${p.name.slice(0, 20)} <span class="badge badge-${p.role.replace(/\s+/g, '')}">${p.role}</span> (Güç: ${p.power})</li>`).join('')}</ul>
+  `;
+
+  // Takım B'yi güncelliyoruz
+  document.getElementById('teamB').innerHTML = `
+    <h3>B Takımı (Toplam Güç: ${totalPowerB})</h3>
+    <ul>${teamB.map(p => `<li>${p.name.slice(0, 20)} <span class="badge badge-${p.role.replace(/\s+/g, '')}">${p.role}</span> (Güç: ${p.power})</li>`).join('')}</ul>
+  `;
+}
+
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function deletePlayer(index) {
+      players.splice(index, 1);
+      localStorage.setItem('players', JSON.stringify(players));
+      updatePlayerList();
+    }
+
+    function editPlayer(index) {
+      editingIndex = index;
+      const player = players[index];
+      const editHTML = `
+        <input type="text" id="editName" value="${player.name}" maxlength="20" />
+        <select id="editRole">
+          <option value="Kaleci" ${player.role === 'Kaleci' ? 'selected' : ''}>Kaleci</option>
+          <option value="Defans" ${player.role === 'Defans' ? 'selected' : ''}>Defans</option>
+          <option value="Orta Saha" ${player.role === 'Orta Saha' ? 'selected' : ''}>Orta Saha</option>
+          <option value="Forvet" ${player.role === 'Forvet' ? 'selected' : ''}>Forvet</option>
+        </select>
+        <select id="editSkill">
+          ${[...Array(10)].map((_, i) => `<option value="${i+1}" ${player.power === i+1 ? 'selected' : ''}>${i+1}</option>`).join('')}
+        </select>
+        <button onclick="updatePlayer()">Güncelle</button>
+      `;
+      document.getElementById('editSection').innerHTML = editHTML;
+      document.getElementById('editSection').style.display = 'flex';
+    }
+
+    function updatePlayer() {
+      const name = document.getElementById('editName').value.trim();
+      const role = document.getElementById('editRole').value;
+      const power = parseInt(document.getElementById('editSkill').value);
+
+      if (!name) return alert("Lütfen oyuncu adı girin.");
+
+      players[editingIndex] = { name, role, power };
+      localStorage.setItem('players', JSON.stringify(players));
+      document.getElementById('editSection').style.display = 'none';
+      updatePlayerList();
+    }
+
+    updatePlayerList();
+  </script>
+</body>
+</html>
