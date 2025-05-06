@@ -23,10 +23,14 @@
       background: rgba(255, 255, 255, 0.8);
       border-radius: 15px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     h2, h3 {
       color: #333;
+      text-align: center;
     }
 
     .input-container {
@@ -34,6 +38,7 @@
       flex-wrap: wrap;
       gap: 10px;
       margin-bottom: 20px;
+      justify-content: center;
     }
 
     input, select, button {
@@ -56,9 +61,19 @@
 
     .player-section {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: 20px;
+      justify-content: center;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+
+    .player-list-container {
+      padding: 15px;
+      border-radius: 10px;
+      background-color: #fff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      width: 48%;
+      text-align: center;
+      margin: 0 auto;
     }
 
     ul {
@@ -82,19 +97,31 @@
       gap: 5px;
     }
 
-    .team {
-      padding: 15px;
-      border-radius: 10px;
-      background-color: #fff;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      width: 48%;
+    .teams-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+      width: 100%;
     }
 
     .teams-container {
       display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 10px;
+      justify-content: center;
+      gap: 20px;
+      width: 100%;
+      max-width: 1000px;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .team {
+      padding: 15px;
+      border-radius: 10px;
+      background-color: #f9f9f9;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      width: 48%;
     }
 
     .badge {
@@ -139,7 +166,7 @@
     </div>
 
     <div class="player-section">
-      <div style="flex: 1; min-width: 300px;">
+      <div class="player-list-container">
         <h3>Oyuncular (Toplam: <span id="playerCount">0</span>)</h3>
         <ul id="playerList"></ul>
       </div>
@@ -147,9 +174,11 @@
 
     <button onclick="shuffleTeams()">Karıştır ve Takımları Kur</button>
 
-    <div class="teams-container">
-      <div class="team" id="teamA"></div>
-      <div class="team" id="teamB"></div>
+    <div class="teams-wrapper">
+      <div class="teams-container">
+        <div class="team" id="teamA"></div>
+        <div class="team" id="teamB"></div>
+      </div>
     </div>
   </div>
 
@@ -193,32 +222,34 @@
         return;
       }
 
-      const goalkeepers = players.filter(p => p.role === "Kaleci");
-      const otherPlayers = players.filter(p => p.role !== "Kaleci");
-
-      // Kaleciler, takımlara dağıtılacak
+      const kaleciler = shuffle(players.filter(p => p.role === 'Kaleci'));
+      const digerOyuncular = shuffle(players.filter(p => p.role !== 'Kaleci'));
       const teamA = [];
       const teamB = [];
 
-      // 2 kaleci ise, her iki takıma birer kaleci ekle
-      if (goalkeepers.length === 2) {
-        teamA.push(goalkeepers[0]);
-        teamB.push(goalkeepers[1]);
-      } 
-      // 1 kaleci ise, onu bir takıma ekle ve diğer takıma boş kaleci eklenmesin
-      else if (goalkeepers.length === 1) {
-        teamA.push(goalkeepers[0]); // Varsayılan olarak A takımına ekleyelim
+      if (kaleciler.length >= 2) {
+        teamA.push(kaleciler[0]);
+        teamB.push(kaleciler[1]);
+      } else if (kaleciler.length === 1) {
+        teamA.push(kaleciler[0]);
       }
 
-      // Diğer oyuncuları dağıt
-      const shuffledOthers = shuffle(otherPlayers);
-      const remainingA = 7 - teamA.length;
-      const remainingB = 7 - teamB.length;
+      digerOyuncular.sort(() => Math.random() - 0.5);
 
-      teamA.push(...shuffledOthers.slice(0, remainingA));
-      teamB.push(...shuffledOthers.slice(remainingA, remainingA + remainingB));
+      while (teamA.length < 7 || teamB.length < 7) {
+        let next = digerOyuncular.pop();
+        if (!next) break;
 
-      // Takımları HTML'de güncelle
+        const sumA = teamA.reduce((sum, p) => sum + p.power, 0);
+        const sumB = teamB.reduce((sum, p) => sum + p.power, 0);
+
+        if (teamA.length < 7 && (sumA <= sumB || teamB.length >= 7)) {
+          teamA.push(next);
+        } else {
+          teamB.push(next);
+        }
+      }
+
       const totalPowerA = teamA.reduce((sum, p) => sum + p.power, 0);
       const totalPowerB = teamB.reduce((sum, p) => sum + p.power, 0);
 
