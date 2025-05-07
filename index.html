@@ -42,14 +42,13 @@
     }
 
     input, select, button {
-      padding: 10px;
+      padding: 5px 8px;
       font-size: 14px;
       border-radius: 5px;
       border: 1px solid #ddd;
     }
 
     button {
-      padding: 5px 8px;
       cursor: pointer;
       background-color: #4CAF50;
       color: white;
@@ -151,6 +150,11 @@
         <option value="Orta Saha">Orta Saha</option>
         <option value="Forvet">Forvet</option>
       </select>
+	  <select id="playerSquad">
+  <option value="Ana">Ana Kadro</option>
+  <option value="Yedek">Yedek</option>
+</select>
+
       <select id="playerSkill">
         <option value="1">1</option>
         <option value="2">2</option>
@@ -167,11 +171,17 @@
     </div>
 
     <div class="player-section">
-      <div class="player-list-container">
-        <h3>Oyuncular (Toplam: <span id="playerCount">0</span>)</h3>
-        <ul id="playerList"></ul>
-      </div>
-    </div>
+  <div class="player-list-container">
+    <h3>Ana Kadro (Toplam: <span id="mainCount">0</span>)</h3>
+    <ul id="mainPlayerList"></ul>
+  </div>
+
+  <div class="player-list-container">
+    <h3>Yedekler (Toplam: <span id="reserveCount">0</span>)</h3>
+    <ul id="reservePlayerList"></ul>
+  </div>
+</div>
+
 
     <button onclick="shuffleTeams()">Karıştır ve Takımları Kur</button>
 
@@ -186,42 +196,102 @@
   <script>
   let players = JSON.parse(localStorage.getItem('players')) || [];
   let playersInTeams = [];
+  function toggleRoster(index) {
+  if (!players[index]) return;
 
-  function addPlayer() {
-    const name = document.getElementById('playerName').value.trim();
-    const role = document.getElementById('playerRole').value;
-    const power = parseInt(document.getElementById('playerSkill').value);
+  const player = players[index];
 
-    if (!name) return alert("Lütfen oyuncu adı girin.");
+  // Eğer oyuncu kaleci ve yedek kadrodan ana kadroya geçiyorsa
+  if (player.role === 'Kaleci' && player.squad === 'Yedek') {
+    const kaleciSayisi = players.filter(p => p.role === 'Kaleci' && p.squad === 'Ana').length;
 
-    if (role === 'Kaleci' && players.filter(p => p.role === 'Kaleci').length >= 2) {
-      alert("Sadece 2 kaleci eklenebilir.");
+    // Eğer ana kadroda 2 kaleci varsa, uyarı göster
+    if (kaleciSayisi >= 2) {
+      alert("Ana kadroda en fazla 2 kaleci olabilir. Bu oyuncuyu yedek olarak bırakmak zorundasınız.");
       return;
     }
-
-    players.push({ name, role, power });
-    localStorage.setItem('players', JSON.stringify(players));
-    document.getElementById('playerName').value = '';
-    updatePlayerList();
   }
+
+  // Kadro geçişi işlemi
+  if (player.squad === 'Ana') {
+    // Ana kadrodan yedeğe al
+    player.squad = 'Yedek';
+  } else {
+    // Yedekten ana kadroya al — ama önce kontrol et
+    const mainCount = players.filter(p => p.squad === 'Ana').length;
+    if (mainCount >= 14) {
+      alert("Ana kadroda en fazla 14 oyuncu olabilir. Oyuncu yedek kadroda kalacak.");
+      return;
+    }
+    player.squad = 'Ana';
+  }
+
+  // Listeyi güncelle
+  localStorage.setItem('players', JSON.stringify(players));
+  updatePlayerList();
+}
+
+
+
+
+  function addPlayer() {
+  const name = document.getElementById('playerName').value.trim();
+  const role = document.getElementById('playerRole').value;
+  const power = parseInt(document.getElementById('playerSkill').value);
+  const squad = document.getElementById('playerSquad').value;
+
+  if (!name) return alert("Lütfen oyuncu adı girin.");
+
+  if (role === 'Kaleci' && players.filter(p => p.role === 'Kaleci' && p.squad === 'Ana').length >= 2 && squad === 'Ana') {
+    alert("Ana kadroda en fazla 2 kaleci olabilir.");
+    return;
+  }
+
+  const anaKadroOyuncuSayisi = players.filter(p => p.squad === 'Ana').length;
+  if (squad === 'Ana' && anaKadroOyuncuSayisi >= 14) {
+    alert("Ana kadroda en fazla 14 oyuncu olabilir. Bu oyuncuyu Yedek olarak ekleyebilirsiniz.");
+    return;
+  }
+
+  players.push({ name, role, power, squad });
+  localStorage.setItem('players', JSON.stringify(players));
+  document.getElementById('playerName').value = '';
+  updatePlayerList();
+}
+
 
   function updatePlayerList() {
-    const playerList = document.getElementById('playerList');
-    const playerCount = document.getElementById('playerCount');
+  const mainPlayerList = document.getElementById('mainPlayerList');
+  const reservePlayerList = document.getElementById('reservePlayerList');
+  const mainCount = document.getElementById('mainCount');
+  const reserveCount = document.getElementById('reserveCount');
 
-    playerList.innerHTML = players.map((p, index) => {
-      const roleClass = 'badge-' + p.role.replace(/\s+/g, '');
-      return `<li>
-        ${p.name.slice(0, 20)} <span class="badge ${roleClass}">${p.role}</span> (Güç: ${p.power})
-        <div class="buttons">
-          <button onclick="editPlayer(${index})">Düzenle</button>
-          <button onclick="deletePlayer(${index})">Sil</button>
-        </div>
-      </li>`;
-    }).join('');
+  const mainPlayers = players.filter(p => p.squad === 'Ana');
+  const reservePlayers = players.filter(p => p.squad === 'Yedek');
 
-    playerCount.textContent = players.length;
-  }
+  const listItemHtml = (p, index) => {
+    const roleClass = 'badge-' + p.role.replace(/\s+/g, '');
+    return `<li>
+  ${p.name.slice(0, 20)} 
+  <span class="badge ${roleClass}">${p.role}</span> 
+  (Güç: ${p.power}) 
+  <div class="buttons">
+  <button onclick="editPlayer(${index})">Düzenle</button>
+  <button onclick="deletePlayer(${index})">Sil</button>
+  <button onclick="toggleRoster(${index})">↔ Kadro Aktar</button>
+</div>
+
+</li>`;
+
+  };
+
+  mainPlayerList.innerHTML = mainPlayers.map((p, i) => listItemHtml(p, players.indexOf(p))).join('');
+  reservePlayerList.innerHTML = reservePlayers.map((p, i) => listItemHtml(p, players.indexOf(p))).join('');
+
+  mainCount.textContent = mainPlayers.length;
+  reserveCount.textContent = reservePlayers.length;
+}
+
 
   function deletePlayer(index) {
     players.splice(index, 1);
@@ -247,15 +317,17 @@
   }
 
   function shuffleTeams() {
-    if (players.length !== 14) {
-      alert("Tam olarak 14 oyuncu eklenmeli! Şu an: " + players.length);
-      return;
-    }
+  const mainPlayers = players.filter(p => p.squad === 'Ana');
 
-    const kaleciler = shuffle(players.filter(p => p.role === 'Kaleci'));
-    const defanslar = shuffle(players.filter(p => p.role === 'Defans'));
-    const ortasahalar = shuffle(players.filter(p => p.role === 'Orta Saha'));
-    const forvetler = shuffle(players.filter(p => p.role === 'Forvet'));
+  if (mainPlayers.length !== 14) {
+    alert("Ana kadroda tam olarak 14 oyuncu olmalı! Şu an: " + mainPlayers.length);
+    return;
+  }
+
+  const kaleciler = shuffle(mainPlayers.filter(p => p.role === 'Kaleci'));
+  const defanslar = shuffle(mainPlayers.filter(p => p.role === 'Defans'));
+  const ortasahalar = shuffle(mainPlayers.filter(p => p.role === 'Orta Saha'));
+  const forvetler = shuffle(mainPlayers.filter(p => p.role === 'Forvet'));
 
     const teamA = [];
     const teamB = [];
