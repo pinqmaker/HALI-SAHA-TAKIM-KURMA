@@ -183,144 +183,165 @@
   </div>
 
   <script>
-    let players = JSON.parse(localStorage.getItem('players')) || [];
+  let players = JSON.parse(localStorage.getItem('players')) || [];
+  let playersInTeams = [];
 
-    function addPlayer() {
-  const name = document.getElementById('playerName').value.trim();
-  const role = document.getElementById('playerRole').value;
-  const power = parseInt(document.getElementById('playerSkill').value);
+  function addPlayer() {
+    const name = document.getElementById('playerName').value.trim();
+    const role = document.getElementById('playerRole').value;
+    const power = parseInt(document.getElementById('playerSkill').value);
 
-  if (!name) return alert("Lütfen oyuncu adı girin.");
+    if (!name) return alert("Lütfen oyuncu adı girin.");
 
-  // Kaleci sayısını kontrol et
-  if (role === 'Kaleci' && players.filter(p => p.role === 'Kaleci').length >= 2) {
-    alert("Sadece 2 kaleci eklenebilir.");
-    return;
-  }
-
-  players.push({ name, role, power });
-  localStorage.setItem('players', JSON.stringify(players));
-  document.getElementById('playerName').value = '';
-  updatePlayerList();
-}
-
-
-    function updatePlayerList() {
-      const playerList = document.getElementById('playerList');
-      const playerCount = document.getElementById('playerCount');
-
-      playerList.innerHTML = players.map((p, index) => {
-        const roleClass = 'badge-' + p.role.replace(/\s+/g, '');
-        return `<li>
-          ${p.name.slice(0, 20)} <span class="badge ${roleClass}">${p.role}</span> (Güç: ${p.power})
-          <div class="buttons">
-            <button onclick="editPlayer(${index})">Düzenle</button>
-            <button onclick="deletePlayer(${index})">Sil</button>
-          </div>
-        </li>`;
-      }).join('');
-
-      playerCount.textContent = players.length;
-    }
-function shuffleTeams() {
-  if (players.length !== 14) {
-    alert("Tam olarak 14 oyuncu eklenmeli! Şu an: " + players.length);
-    return;
-  }
-
-  const kaleciler = shuffle(players.filter(p => p.role === 'Kaleci'));
-  const defanslar = shuffle(players.filter(p => p.role === 'Defans'));
-  const ortasahalar = shuffle(players.filter(p => p.role === 'Orta Saha'));
-  const forvetler = shuffle(players.filter(p => p.role === 'Forvet'));
-
-  const teamA = [];
-  const teamB = [];
-
-  // İlk olarak kaleciler yerleştirilecek
-  if (kaleciler.length >= 2) {
-    teamA.push(kaleciler[0]);
-    teamB.push(kaleciler[1]);
-  } else if (kaleciler.length === 1) {
-    teamA.push(kaleciler[0]);
-  }
-
-  // Defans oyuncuları dengeli şekilde dağıtılacak
-  let defansIndex = 0;
-  while (defanslar.length > 0) {
-    if (defansIndex % 2 === 0 && teamA.length < 7) {
-      teamA.push(defanslar.pop());
-    } else if (defansIndex % 2 === 1 && teamB.length < 7) {
-      teamB.push(defanslar.pop());
-    }
-    defansIndex++;
-  }
-
-  // Orta saha oyuncuları dengeli şekilde dağıtılacak
-  let ortasahaIndex = 0;
-  while (ortasahalar.length > 0) {
-    if (ortasahaIndex % 2 === 0 && teamA.length < 7) {
-      teamA.push(ortasahalar.pop());
-    } else if (ortasahaIndex % 2 === 1 && teamB.length < 7) {
-      teamB.push(ortasahalar.pop());
-    }
-    ortasahaIndex++;
-  }
-
-  // Forvet oyuncuları dengeli şekilde dağıtılacak
-  let forvetIndex = 0;
-  while (forvetler.length > 0) {
-    if (forvetIndex % 2 === 0 && teamA.length < 7) {
-      teamA.push(forvetler.pop());
-    } else if (forvetIndex % 2 === 1 && teamB.length < 7) {
-      teamB.push(forvetler.pop());
-    }
-    forvetIndex++;
-  }
-
-  // Takım A ve Takım B'nin toplam güçlerini hesapla
-  const totalPowerA = teamA.reduce((sum, p) => sum + p.power, 0);
-  const totalPowerB = teamB.reduce((sum, p) => sum + p.power, 0);
-
-  // Takım A'yı ekle
-  document.getElementById('teamA').innerHTML = `
-    <h3>A Takımı (Toplam Güç: ${totalPowerA})</h3>
-    <ul>${teamA.map(p => `<li>${p.name.slice(0, 20)} <span class="badge badge-${p.role.replace(/\s+/g, '')}">${p.role}</span> (Güç: ${p.power})</li>`).join('')}</ul>
-  `;
-
-  // Takım B'yi ekle
-  document.getElementById('teamB').innerHTML = `
-    <h3>B Takımı (Toplam Güç: ${totalPowerB})</h3>
-    <ul>${teamB.map(p => `<li>${p.name.slice(0, 20)} <span class="badge badge-${p.role.replace(/\s+/g, '')}">${p.role}</span> (Güç: ${p.power})</li>`).join('')}</ul>
-  `;
-}
-
-
-
-
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
+    if (role === 'Kaleci' && players.filter(p => p.role === 'Kaleci').length >= 2) {
+      alert("Sadece 2 kaleci eklenebilir.");
+      return;
     }
 
-    function deletePlayer(index) {
-      players.splice(index, 1);
-      localStorage.setItem('players', JSON.stringify(players));
-      updatePlayerList();
-    }
-
-    function editPlayer(index) {
-      const player = players[index];
-      document.getElementById('playerName').value = player.name;
-      document.getElementById('playerRole').value = player.role;
-      document.getElementById('playerSkill').value = player.power;
-      players.splice(index, 1);
-      updatePlayerList();
-    }
-
+    players.push({ name, role, power });
+    localStorage.setItem('players', JSON.stringify(players));
+    document.getElementById('playerName').value = '';
     updatePlayerList();
-  </script>
+  }
+
+  function updatePlayerList() {
+    const playerList = document.getElementById('playerList');
+    const playerCount = document.getElementById('playerCount');
+
+    playerList.innerHTML = players.map((p, index) => {
+      const roleClass = 'badge-' + p.role.replace(/\s+/g, '');
+      return `<li>
+        ${p.name.slice(0, 20)} <span class="badge ${roleClass}">${p.role}</span> (Güç: ${p.power})
+        <div class="buttons">
+          <button onclick="editPlayer(${index})">Düzenle</button>
+          <button onclick="deletePlayer(${index})">Sil</button>
+        </div>
+      </li>`;
+    }).join('');
+
+    playerCount.textContent = players.length;
+  }
+
+  function deletePlayer(index) {
+    players.splice(index, 1);
+    localStorage.setItem('players', JSON.stringify(players));
+    updatePlayerList();
+  }
+
+  function editPlayer(index) {
+    const player = players[index];
+    document.getElementById('playerName').value = player.name;
+    document.getElementById('playerRole').value = player.role;
+    document.getElementById('playerSkill').value = player.power;
+    players.splice(index, 1);
+    updatePlayerList();
+  }
+
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  function shuffleTeams() {
+    if (players.length !== 14) {
+      alert("Tam olarak 14 oyuncu eklenmeli! Şu an: " + players.length);
+      return;
+    }
+
+    const kaleciler = shuffle(players.filter(p => p.role === 'Kaleci'));
+    const defanslar = shuffle(players.filter(p => p.role === 'Defans'));
+    const ortasahalar = shuffle(players.filter(p => p.role === 'Orta Saha'));
+    const forvetler = shuffle(players.filter(p => p.role === 'Forvet'));
+
+    const teamA = [];
+    const teamB = [];
+
+    if (kaleciler.length >= 2) {
+      teamA.push(kaleciler[0]);
+      teamB.push(kaleciler[1]);
+    } else if (kaleciler.length === 1) {
+      teamA.push(kaleciler[0]);
+    }
+
+    let defansIndex = 0;
+    while (defanslar.length > 0) {
+      if (defansIndex % 2 === 0 && teamA.length < 7) {
+        teamA.push(defanslar.pop());
+      } else if (teamB.length < 7) {
+        teamB.push(defanslar.pop());
+      }
+      defansIndex++;
+    }
+
+    let ortasahaIndex = 0;
+    while (ortasahalar.length > 0) {
+      if (ortasahaIndex % 2 === 0 && teamA.length < 7) {
+        teamA.push(ortasahalar.pop());
+      } else if (teamB.length < 7) {
+        teamB.push(ortasahalar.pop());
+      }
+      ortasahaIndex++;
+    }
+
+    let forvetIndex = 0;
+    while (forvetler.length > 0) {
+      if (forvetIndex % 2 === 0 && teamA.length < 7) {
+        teamA.push(forvetler.pop());
+      } else if (teamB.length < 7) {
+        teamB.push(forvetler.pop());
+      }
+      forvetIndex++;
+    }
+
+    // Yeni eklendi: Takım bilgilerini kaydet
+    playersInTeams = [
+      ...teamA.map(p => ({ ...p, team: 'A' })),
+      ...teamB.map(p => ({ ...p, team: 'B' }))
+    ];
+
+    renderTeams();
+  }
+
+  // Yeni fonksiyon: Takımları göster
+  function renderTeams() {
+    const teamA = playersInTeams.filter(p => p.team === 'A');
+    const teamB = playersInTeams.filter(p => p.team === 'B');
+
+    const htmlList = team => team.map((p, i) => `
+      <li>
+        ${p.name.slice(0, 20)} 
+        <span class="badge badge-${p.role.replace(/\s+/g, '')}">${p.role}</span> 
+        (Güç: ${p.power})
+        <button onclick="switchTeam(${playersInTeams.indexOf(p)})">Takım Değiştir</button>
+      </li>
+    `).join('');
+
+    const totalPowerA = teamA.reduce((sum, p) => sum + p.power, 0);
+    const totalPowerB = teamB.reduce((sum, p) => sum + p.power, 0);
+
+    document.getElementById('teamA').innerHTML = `
+      <h3>A Takımı (Toplam Güç: ${totalPowerA})</h3>
+      <ul>${htmlList(teamA)}</ul>
+    `;
+
+    document.getElementById('teamB').innerHTML = `
+      <h3>B Takımı (Toplam Güç: ${totalPowerB})</h3>
+      <ul>${htmlList(teamB)}</ul>
+    `;
+  }
+
+  // Yeni fonksiyon: Takım değiştir
+  function switchTeam(index) {
+    if (!playersInTeams[index]) return;
+    playersInTeams[index].team = playersInTeams[index].team === 'A' ? 'B' : 'A';
+    renderTeams();
+  }
+
+  updatePlayerList();
+</script>
+
 </body>
 </html>
